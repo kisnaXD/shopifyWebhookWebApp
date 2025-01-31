@@ -124,6 +124,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
     document.getElementById("closeSuccessModal").addEventListener("click", () => {
         document.getElementById("successModal").style.display = "none";
+        window.location.href = window.location.href;
     });
     window.addEventListener("click", (event) => {
         const modal = document.getElementById("modal");
