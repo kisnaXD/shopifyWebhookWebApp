@@ -24,7 +24,7 @@ function refreshTable(accessCode) {
                 accessCodePara.innerText = `Welcome : ${data.name} \nAccess Code : ${accessCode}`
                 accessCodePara.setAttribute("data-access-code", accessCode);
                 accessCodePara.setAttribute("data-name", data.name);
-                if(data.tickets[0].quantity === 0 && data.tickets[1].quantity === 0) {
+                if(data.tickets[0].quantity === 0 && data.tickets[0].quantity === 0) {
                     document.getElementById("expireModal").style.display = "flex";
                 } else {
                     data.tickets.forEach(ticket => {
