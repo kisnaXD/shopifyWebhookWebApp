@@ -1,164 +1,87 @@
-function updateValue(id, change, maxValue) {
-    let element = document.getElementById(id);
-    let currentValue = parseInt(element.innerText);
-    let newValue = currentValue + change;
-    if (newValue >= 0 && newValue <= maxValue) {
-        element.innerText = newValue;
-    }
-}
-
-function refreshTable(accessCode, ch) {
-    fetch(`https://vades.in/verify-access-code`, {
-        method: "POST",
-        headers: {
-            'Content-Type': "application/json",
-        },
-        body: JSON.stringify({
-            accessCode: accessCode
-        }),
-    })
-        .then(response => response.json())
-        .then(data => {
-            if (data.status === "success") {
-                const accessCodePara = document.querySelector(".accessCodePara");
-                accessCodePara.innerText = `Welcome : ${data.name} \nAccess Code : ${accessCode}`
-                accessCodePara.setAttribute("data-access-code", accessCode);
-                accessCodePara.setAttribute("data-name", data.name);
-                if(data.tickets[0].quantity === 0 && data.tickets[0].quantity === 0 && ch === false) {
-                    document.getElementById("expireModal").style.display = "flex";
-                } else {
-                    data.tickets.forEach(ticket => {
-                        const ticketName = ticket.name.toLowerCase().replace(/\s+/g, '-'); 
-                        const quantity = ticket.quantity;
-                        const availableElement = document.getElementById(ticketName + '-available');
-                        if (availableElement) {
-                            availableElement.innerText = quantity;
-                        }
-                        const valueElement = document.getElementById(ticketName + '-value');
-                        if (valueElement) {
-                            valueElement.innerText = Math.min(quantity, parseInt(valueElement.innerText));
-                        }
-                        const btnPlus = document.getElementById(ticketName + '-plus');
-                        const btnMinus = document.getElementById(ticketName + '-minus');
-                        if (btnPlus && btnMinus) {
-                            const maxValue = quantity;
-
-                            btnPlus.onclick = function() {
-                                updateValue(ticketName + '-value', 1, maxValue);
-                            };
-                            btnMinus.onclick = function() {
-                                updateValue(ticketName + '-value', -1, maxValue);
-                            };
-                        }
-                    });
-                }
-            } else {
-                document.getElementById("modal").style.display = "flex";
-            }
-        })
-        .catch(error => {
-            document.getElementById("modal").style.display = "flex";
-        });
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-    document.getElementById("accessCodeSubmit").addEventListener("click", function () {
-        const accessCode = document.getElementById("accessCodeInput").value.trim();
-    
-        if (!accessCode) {
-            alert("Please enter an access code.");
-            return;
-        }
-        
-        refreshTable(accessCode, false);
-        
-    });
-    document.getElementById("availableSubmit").addEventListener("click", () => {
-        const accessCodePara = document.querySelector(".accessCodePara");
-        const accessCode = accessCodePara.getAttribute("data-access-code"); // Retrieve stored access code
-        const personName = accessCodePara.getAttribute("data-name"); // Retrieve stored person's name
-
-        if (!accessCode) {
-            alert("No valid access code found. Please verify your access code first.");
-            return;
-        }
-        const generalMaleValue = parseInt(document.getElementById("general-male-entry-value").innerText);
-        const generalFemaleValue = parseInt(document.getElementById("general-female-entry-value").innerText);
-        if(generalMaleValue === 0 && generalFemaleValue === 0) {
-            document.getElementById('entryModal').style.display = 'flex';
-        } else {
-            const requestBody = {
-                accessCode: accessCode,
-                generalMaleEntry: generalMaleValue,
-                generalFemaleEntry: generalFemaleValue
-            };
-
-            fetch(`https://vades.in/add-entry`, {
-                method: "POST",
-                headers: {
-                    'Content-Type': "application/json",
-                },
-                body: JSON.stringify(requestBody),
-            })
-            .then(response => response.json()) 
-            .then(data => {
-
-                if (data.status === "success") {
-                    const successText = document.getElementById("successText");
-                    successText.innerHTML = `
-                        <p style="font-family: 'Montserrat', sans-serif;"><strong>Confirmed By:</strong> ${personName}</p>
-                        <br>
-                        <p style="font-family: 'Montserrat', sans-serif;"><strong>Confirmed Entries:</strong></p>
-                        <ul style="list-style-type: none; font-family: 'Montserrat', sans-serif;">
-                            <li>General Male Entry: ${generalMaleValue}</li>
-                            <li>General Female Entry: ${generalFemaleValue}</li>
-                        </ul>
-                    `;
-                    refreshTable(accessCode, true);
-                    document.getElementById("successModal").style.display = "flex"; 
-                } else {
-                    document.getElementById("modal").style.display = "flex";
-                }
-            })
-            .catch(error => {
-                console.error(error);
-                document.getElementById("modal").style.display = "flex";
-            });
-        }
-    });
-    document.getElementById("closeModal").addEventListener("click", () => {
-        document.getElementById("modal").style.display = "none";
-    });
-    document.getElementById("closeEntryModal").addEventListener("click", () => {
-        document.getElementById("entryModal").style.display = "none";
-    });
-    document.getElementById("closeSuccessModal").addEventListener("click", () => {
-        document.getElementById("successModal").style.display = "none";
-        window.location.href = window.location.href;
-    });
-    document.getElementById("closeExpireModal").addEventListener("click", () => {
-        document.getElementById("expireModal").style.display = "none";
-    });
-    window.addEventListener("click", (event) => {
-        const modal = document.getElementById("modal");
-        const successModal = document.getElementById("successModal");
-        const entryModal = document.getElementById("entryModal");
-        const expireModal = document.getElementById("expireModal");
-
-        if (event.target === modal) {  
-            modal.style.display = "none";
-        }
-
-        if (event.target === successModal) {  
-            successModal.style.display = "none";
-        }
-
-        if(event.target === entryModal) {
-            entryModal.style.display = 'none';
-        }
-
-        if (event.target === expireModal) {  
-            modal.style.display = "none";
-        }
-    });
-});
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Vades Production Ticketing</title>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.1/css/all.min.css" integrity="sha512-5Hs3dF2AEPkpNAR7UiOHba+lRSJNeM2ECkwxUIxC1Q/FLycGTbNapWXB4tP889k5T5Ju8fs4b1P5z/iB4nMfSQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Italiana&family=Metrophobic&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Nunito+Sans:ital,opsz,wght@0,6..12,200..1000;1,6..12,200..1000&family=Outfit:wght@100..900&family=Pixelify+Sans:wght@400..700&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+        <link href="https://fonts.cdnfonts.com/css/niagara-solid" rel="stylesheet">
+        <link rel="stylesheet" href="styles.css" />
+    </head>
+    <body>
+        <div class="imagediv">
+            <img src="./assets/vadeslogo.jpeg" style="transform: scale(0.25)"/>
+        </div>
+        <h1 class="main-heading">Vades Production</h1>
+        <p class="main-para">Enter Access Code : </p>
+        <input id="accessCodeInput" class="accessCodeTextBox" type="text" placeholder="Enter Access Code" />
+        <button id="accessCodeSubmit" class="accessCodeButton">
+            <a>Search</a>
+        </button>
+        <p class="accessCodePara"></p>
+        <table>
+            <thead>
+                <tr>
+                    <th rowspan="2">Product Name</th>
+                    <th rowspan="2">Availability</th>
+                    <th rowspan="2">Entered</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>General Male Entry</td>
+                    <td><span id="general-male-entry-available">0</span></td>
+                    <td>
+                        <button class="btn btn-minus" id="general-male-entry-minus">-</button>
+                        <span id="general-male-entry-value">0</span>
+                        <button class="btn btn-plus" id="general-male-entry-plus">+</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td>General Male Entry</td>
+                    <td><span id="general-female-entry-available">0</span></td>
+                    <td>
+                        <button class="btn btn-minus" id="general-female-entry-minus">-</button>
+                        <span id="general-female-entry-value">0</span>
+                        <button class="btn btn-plus" id="general-female-entry-plus">+</button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>               
+        <button id="availableSubmit" class="availableButton">
+            <a>
+                Enter
+            </a>
+        </button>
+        <div id="modal" class="modal">
+            <div class="modal-content">
+                <p>Invalid Access Code. Please try again.</p>
+                <button id="closeModal">OK</button>
+            </div>
+        </div>
+        <div id="entryModal" class="modal">
+            <div class="modal-content">
+                <p>Please add some entries</p>
+                <button id="closeEntryModal">OK</button>
+            </div>
+        </div>
+        <div id="expireModal" class="modal">
+            <div class="modal-content">
+                <h2 style="font-family: 'Montserrat', sans-serif">Access Code Expired</h2>
+                <p>All Entries via this access code have already been made</p>
+                <button id="closeExpireModal">OK</button>
+            </div>
+        </div>
+        <div id="successModal" class="modal">
+            <div class="modal-content">
+                <h2 style="font-family: 'Montserrat', sans-serif">Entry Confirmed!</h2>
+                <div id="successText"></div>
+                <button id="closeSuccessModal">OK</button>
+            </div>
+        </div>
+        <script src="webappscript.js"></script>
+    </body>
+</html>
