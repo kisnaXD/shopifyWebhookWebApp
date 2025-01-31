@@ -1,0 +1,205 @@
+* {
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.imagediv {
+    height: 250px;
+    width: 250px;
+    border-radius: 12px;
+    overflow: hidden;
+    margin-top: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.main-heading {
+    color: black;
+    font-size: 48px;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: bold;
+    text-align: center;
+    width: 100vw;
+    height: auto;
+    margin-top: 20px;
+}
+
+.main-para {
+    color: black;
+    font-size: 30px;
+    font-family: "Outfit", sans-serif;
+    font-weight: bold;
+    text-align: center;
+    width: 90vw;
+    margin-top: 24px;
+}
+
+.accessCodeTextBox {
+    width: 76vw;
+    height: auto;
+    padding: 12px 16px;
+    font-family: "Outfit", sans-serif;
+    font-weight: lighter;
+    color: black;
+    background-color: transparent;
+    border: 2px solid #cdcdcd;
+    border-radius: 100px;
+    margin-top: 16px;
+}
+
+.accessCodeButton {
+    background-color: rgb(0, 96, 230);
+    color: white;
+    width: auto;
+    height: auto;
+    font-size: 20px;
+    padding: 8px 12px;
+    font-family: "Outfit", sans-serif;
+    border: none;
+    border-radius: 8px;
+    margin-top: 16px;
+    cursor: pointer;
+}
+
+.accessCodeButton:hover {
+    background-color: rgb(0, 0, 255);
+}
+
+table {
+    font-family: "Outfit", sans-serif;
+    font-size: 14px;
+    width: 80vw;
+    max-width: 600px;
+    border-collapse: collapse;
+    background: white;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 5px;
+    overflow: hidden;
+    margin-top: 20px;
+}
+
+th, td {
+    border: 1px solid #ddd;
+    padding: 12px;
+    text-align: center;
+}
+
+th {
+    background: #FF758F;
+    color: white;
+}
+
+td {
+    background: #FFF0F3;
+}
+
+.entered-column {
+    min-width: 150px; /* Prevents shrinking on smaller screens */
+}
+
+.entered-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.btn {
+    cursor: pointer;
+    padding: 5px 10px;
+    border: none;
+    font-size: 16px;
+    border-radius: 3px;
+}
+
+.btn-plus {
+    background-color: #28a745;
+    color: white;
+}
+
+.btn-minus {
+    background-color: #dc3545;
+    color: white;
+}
+
+.btn:hover {
+    opacity: 0.8;
+}
+
+.availableButton {
+    width: auto;
+    height: auto;
+    background-color: #FF758F;
+    color: white;
+    font-size: 20px;
+    padding: 8px 12px;
+    font-family: "Outfit", sans-serif;
+    border: none;
+    border-radius: 8px;
+    margin-top: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.availableButton:hover {
+    background-color: #dc3545;
+}
+
+.modal {
+    display: none; /* Hidden by default */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.5);
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    text-align: center;
+    width: 80%;
+    max-width: 300px;
+}
+
+.modal-content p {
+    font-family: "Outfit", sans-serif;
+    font-size: 18px;
+    color: black;
+}
+
+#closeModal, #closeEntryModal, #closeSuccessModal {
+    background-color: #FF758F;
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    font-size: 16px;
+    cursor: pointer;
+    border-radius: 5px;
+    margin-top: 10px;
+}
+
+#closeModal:hover, #closeEntryModal:hover, #closeSuccessModal:hover {
+    background-color: #dc3545;
+}
+
+.accessCodePara {
+    color: black;
+    font-size: 16px;
+    margin-top: 16px;
+    width: 100vw;
+    text-align: center;
+    font-family: "Outfit", sans-serif;
+}

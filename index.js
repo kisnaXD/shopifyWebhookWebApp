@@ -4,6 +4,8 @@ const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
 const nodemailer = require('nodemailer');
 const fs = require('fs');
+const cors = require('cors');
+
 require('dotenv').config();
 
 const transporter = nodemailer.createTransport({
@@ -23,8 +25,9 @@ transporter.verify((error, success) => {
 });
 
 const app = express();
+app.use(cors());
 const SHOPIFY_SECRET = process.env.SHOPIFY_SECRET;
-
+app.use(express.JSON())
 app.use('/webhook', express.raw({ type: 'application/json', verify: (req, res, buf) => {
     req.rawBody = buf.toString('utf8');
 }}));
@@ -82,6 +85,96 @@ function saveOrderDetails(namevar, phoneNovar, emailvar, accessCodevar, ticketva
     });
 }
 
+app.post("/verify-access-code", (req, res) => {
+    const { accessCode } = req.query;
+    console.log("Received query")
+
+    if (!accessCode) {
+        console.log("Error in  query")
+        return res.status(400).json({ status: "error", message: "Access code is required" });
+    }
+
+    const filePath = "./orders.json";
+    
+    fs.readFile(filePath, "utf8", (err, data) => {
+        if (err) {
+            return res.status(500).json({ status: "error", message: "Server error reading database" });
+        }
+
+        try {
+            console.log("Replied to query")
+            const orders = JSON.parse(data);
+            const order = orders.find(order => order.accessCode === accessCode);
+
+            if (order) {
+                console.log("Sent back nice to  query")
+                return res.status(200).json({
+                    status: "success",
+                    message: "Access code found",
+                    name: order.name,
+                    phoneNo: order.phoneNo,
+                    email: order.email,
+                    tickets: order.tickets
+                });
+            } else {
+                console.log("Error in sending back to query")
+                return res.status(404).json({ status: "error", message: "Invalid access code" });
+            }
+        } catch (parseError) {
+            return res.status(500).json({ status: "error", message: "Error parsing orders database" });
+        }
+    });
+});
+
+app.post("/add-entry", (req, res) => {
+    const reqbody = req.body;
+    console.log(reqbody);
+    console.log("Received query")
+
+    if (!reqbody.accessCode) {
+        console.log("Error in  query")
+        return res.status(400).json({ status: "error", message: "Invalid Body" });
+    }
+
+    const filePath = "./orders.json";
+    
+    fs.readFile(filePath, "utf8", (err, data) => {
+        let orders = []
+        console.log(data)
+        if (err) {
+            return res.status(500).json({ status: "error", message: "Server error reading database" });
+        } else {
+            try {
+                console.log("Replied to query")
+                orders = JSON.parse(data);
+                console.log(orders)
+                const newOrder = JSON.parse(reqbody);
+                console.log(newOrder);
+                orders.forEach((order) => {
+                    if(newOrder.accessCode === order.accessCode) {
+                        order.tickets[0].quantity -= newOrder.generalFemaleEntry;
+                        order.tickets[1].quantity -= newOrder.generalMaleEntry;
+                    }
+                })
+                fs.writeFile(filePath, JSON.stringify(orders, null, 2), (writeErr) => {
+                    if (writeErr) {
+                        console.error('Error writing to file:', writeErr);
+                    } else {
+                        console.log('Order details saved successfully.');
+                    }
+                });
+                return res.status(200).json({
+                    status: "success",
+                    message: "Entries Added",
+                });
+            } catch (parseError) {
+                return res.status(500).json({ status: "error", message: "Error parsing orders database" });
+            }
+        }
+    });
+});
+
+
 app.post('/webhook', (req, res) => {
     console.log("Received webhook request");
     const shopifyHmac = req.headers['x-shopify-hmac-sha256'];
@@ -99,7 +192,23 @@ app.post('/webhook', (req, res) => {
             const email = payload.email;
             const name = payload.customer?.first_name || 'Guest';
             const phoneNum = payload.customer?.phone || "Phone Number not Provided";
-            const accessCode = generateAccessCode();
+            let accessCode = generateAccessCode();
+            filePath = './orders.json';
+            fs.readFile(filePath, 'utf8', (err, data) => {
+                let orders = [];
+                if (!err) {
+                    try {
+                        orders = JSON.parse(data);
+                    } catch (parseError) {
+                        console.error('Error parsing JSON, initializing new file:', parseError);
+                    }
+                }
+                orders.forEach((order) => {
+                    if(order.accessCode === accessCode) {
+                        accessCode = generateAccessCode();
+                    }
+                })
+            });
 
             const tickets = payload.line_items.map(item => ({
                 name: item.name,
@@ -111,21 +220,97 @@ app.post('/webhook', (req, res) => {
             }).join('');
 
             const htmlTemplate = `
-                <div style="font-family: 'Montserrat', sans-serif; background: linear-gradient(135deg, #ff9a9e, #fad0c4); color: #700000; padding: 20px; border-radius: 15px; text-align: center; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);">
-                    <h1 style="color: #990000;">Welcome to Bigshot's Party, ${name}!</h1>
-                    <p style="font-size: 18px;">We are thrilled to have you join us for an unforgettable night at Bigshot.</p>
-                    <div style="margin: 20px 0; font-size: 18px;">
-                        <strong>Your Access Code:</strong>
-                        <div style="font-size: 24px; font-weight: bold; color: #cc0000;">${accessCode}</div>
-                    </div>
-                    <div style="margin: 20px auto; text-align: center; background: #ffe6e6; padding: 10px; border-radius: 10px; width: fit-content;">
-                        <h2 style="font-size: 18px; color: #700000;">Your Tickets:</h2>
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1">
+                <title>Bigshot's Party Ticket</title>
+                <style>
+                    body {
+                        font-family: 'Montserrat', sans-serif;
+                        margin: 0;
+                        padding: 0;
+                        background: #fad0c4;
+                        color: #700000;
+                        text-align: center;
+                    }
+                    .email-container {
+                        max-width: 600px;
+                        margin: 20px auto;
+                        padding: 20px;
+                        border-radius: 15px;
+                        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+                        background: linear-gradient(135deg, #ff9a9e, #fad0c4);
+                    }
+                    h1 {
+                        color: #990000;
+                    }
+                    .access-code {
+                        font-size: 24px;
+                        font-weight: bold;
+                        color: #cc0000;
+                        background: #fff;
+                        display: inline-block;
+                        padding: 10px 20px;
+                        border-radius: 10px;
+                    }
+                    .tickets-container {
+                        background: #ffe6e6;
+                        padding: 10px;
+                        border-radius: 10px;
+                        display: inline-block;
+                        text-align: left;
+                        margin-top: 10px;
+                    }
+                    .ticket {
+                        font-size: 16px;
+                        margin: 5px 0;
+                    }
+                    p {
+                        font-size: 18px;
+                    }
+                    
+                    /* Dark Mode Support */
+                    @media (prefers-color-scheme: dark) {
+                        body {
+                            background: #1a1a1a;
+                            color: #ff9a9e;
+                        }
+                        .email-container {
+                            background: #2a2a2a;
+                            box-shadow: 0 4px 8px rgba(255, 255, 255, 0.2);
+                        }
+                        h1 {
+                            color: #ff5757;
+                        }
+                        .access-code {
+                            color: #fff;
+                            background: #ff5757;
+                        }
+                        .tickets-container {
+                            background: #3a3a3a;
+                        }
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="email-container">
+                    <h1>Welcome to Bigshot's Party, ${name}!</h1>
+                    <p>We are thrilled to have you join us for an unforgettable night at Bigshot.</p>
+                    <p><strong>Your Access Code:</strong></p>
+                    <div class="access-code">${accessCode}</div>
+                    <div class="tickets-container">
+                        <h2>Your Tickets:</h2>
                         ${ticketDetailsHTML}
                     </div>
-                    <p style="font-size: 18px;">Show this code at the entry to gain access.</p>
-                    <p style="font-size: 16px; margin-top: 20px;">Thank you for your purchase. We can't wait to celebrate with you!</p>
+                    <p>Show this code at the entry to gain access.</p>
+                    <p>Thank you for your purchase. We can't wait to celebrate with you!</p>
                 </div>
+            </body>
+            </html>
             `;
+
 
             sendEmail(
                 '"Ticketing" <vades2233@gmail.com>',
