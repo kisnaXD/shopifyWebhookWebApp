@@ -2,37 +2,31 @@ function updateValue(id, change, maxValue) {
     let element = document.getElementById(id);
     let currentValue = parseInt(element.innerText);
     let newValue = currentValue + change;
-    if (newValue >= 0 && newValue <= maxValue) {  // Restrict the entered value
+    if (newValue >= 0 && newValue <= maxValue) {
         element.innerText = newValue;
     }
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-    document.getElementById("accessCodeSubmit").addEventListener("click", function () {
-        const accessCode = document.getElementById("accessCodeInput").value.trim();
-    
-        if (!accessCode) {
-            alert("Please enter an access code.");
-            return;
-        }
-    
-        fetch(`https://vades.in/verify-access-code`, {
-            method: "POST",
-            headers: {
-                'Content-Type': "application/json",
-            },
-            body: JSON.stringify({
-                accessCode: accessCode
-            }),
-        })
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === "success") {
-                    const accessCodePara = document.querySelector(".accessCodePara");
-                    accessCodePara.innerText = `Welcome : ${data.name} \nAccess Code : ${accessCode}`
-                    accessCodePara.setAttribute("data-access-code", accessCode);
-                    accessCodePara.setAttribute("data-name", data.name);
-                    
+function refreshTable(accessCode) {
+    fetch(`https://vades.in/verify-access-code`, {
+        method: "POST",
+        headers: {
+            'Content-Type': "application/json",
+        },
+        body: JSON.stringify({
+            accessCode: accessCode
+        }),
+    })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === "success") {
+                const accessCodePara = document.querySelector(".accessCodePara");
+                accessCodePara.innerText = `Welcome : ${data.name} \nAccess Code : ${accessCode}`
+                accessCodePara.setAttribute("data-access-code", accessCode);
+                accessCodePara.setAttribute("data-name", data.name);
+                if(data.tickets[0].quantity === 0 && data.tickets[1].quantity === 0) {
+                    document.getElementById("expireModal").style.display = "flex";
+                } else {
                     data.tickets.forEach(ticket => {
                         const ticketName = ticket.name.toLowerCase().replace(/\s+/g, '-'); 
                         const quantity = ticket.quantity;
@@ -57,13 +51,27 @@ document.addEventListener("DOMContentLoaded", () => {
                             };
                         }
                     });
-                } else {
-                    document.getElementById("modal").style.display = "flex"; // Show modal
                 }
-            })
-            .catch(error => {
-                document.getElementById("modal").style.display = "flex"; // Show modal
-            });
+            } else {
+                document.getElementById("modal").style.display = "flex";
+            }
+        })
+        .catch(error => {
+            document.getElementById("modal").style.display = "flex";
+        });
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    document.getElementById("accessCodeSubmit").addEventListener("click", function () {
+        const accessCode = document.getElementById("accessCodeInput").value.trim();
+    
+        if (!accessCode) {
+            alert("Please enter an access code.");
+            return;
+        }
+        
+        refreshTable(accessCode);
+        
     });
     document.getElementById("availableSubmit").addEventListener("click", () => {
         const accessCodePara = document.querySelector(".accessCodePara");
@@ -98,13 +106,15 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (data.status === "success") {
                     const successText = document.getElementById("successText");
                     successText.innerHTML = `
-                        <p><strong>Confirmed By:</strong> ${personName}</p>
-                        <p><strong>Confirmed Entries:</strong></p>
-                        <ul>
+                        <p style="font-family: 'Montserrat', sans-serif;"><strong>Confirmed By:</strong> ${personName}</p>
+                        <br>
+                        <p style="font-family: 'Montserrat', sans-serif;"><strong>Confirmed Entries:</strong></p>
+                        <ul style="list-style-type: none; font-family: 'Montserrat', sans-serif;">
                             <li>General Male Entry: ${generalMaleValue}</li>
                             <li>General Female Entry: ${generalFemaleValue}</li>
                         </ul>
                     `;
+                    refreshTable(accessCode);
                     document.getElementById("successModal").style.display = "flex"; 
                 } else {
                     document.getElementById("modal").style.display = "flex";
@@ -126,10 +136,14 @@ document.addEventListener("DOMContentLoaded", () => {
         document.getElementById("successModal").style.display = "none";
         window.location.href = window.location.href;
     });
+    document.getElementById("closeExpireModal").addEventListener("click", () => {
+        document.getElementById("expireModal").style.display = "none";
+    });
     window.addEventListener("click", (event) => {
         const modal = document.getElementById("modal");
         const successModal = document.getElementById("successModal");
         const entryModal = document.getElementById("entryModal");
+        const expireModal = document.getElementById("expireModal");
 
         if (event.target === modal) {  
             modal.style.display = "none";
@@ -141,6 +155,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if(event.target === entryModal) {
             entryModal.style.display = 'none';
+        }
+
+        if (event.target === expireModal) {  
+            modal.style.display = "none";
         }
     });
 });
