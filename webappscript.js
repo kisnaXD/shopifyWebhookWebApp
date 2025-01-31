@@ -102,7 +102,7 @@ document.addEventListener("DOMContentLoaded", () => {
             })
             .then(response => response.json()) 
             .then(data => {
-
+                console.log(data);
                 if (data.status === "success") {
                     const successText = document.getElementById("successText");
                     successText.innerHTML = `
