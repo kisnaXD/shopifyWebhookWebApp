@@ -180,7 +180,7 @@ td {
     color: black;
 }
 
-#closeModal, #closeEntryModal, #closeSuccessModal {
+#closeModal, #closeEntryModal, #closeSuccessModal, #closeExpireModal {
     background-color: #FF758F;
     color: white;
     border: none;
