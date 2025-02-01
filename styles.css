@@ -191,7 +191,7 @@ td {
     margin-top: 10px;
 }
 
-#closeModal:hover, #closeEntryModal:hover, #closeSuccessModal:hover {
+#closeModal:hover, #closeEntryModal:hover, #closeSuccessModal:hover, #closeExpireModal:hover {
     background-color: #dc3545;
 }
 
