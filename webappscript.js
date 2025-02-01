@@ -7,7 +7,7 @@ function updateValue(id, change, maxValue) {
     }
 }
 
-function refreshTable(accessCode) {
+function refreshTable(accessCode, ch) {
     fetch(`https://vades.in/verify-access-code`, {
         method: "POST",
         headers: {
@@ -24,7 +24,8 @@ function refreshTable(accessCode) {
                 accessCodePara.innerText = `Welcome : ${data.name} \nAccess Code : ${accessCode}`
                 accessCodePara.setAttribute("data-access-code", accessCode);
                 accessCodePara.setAttribute("data-name", data.name);
-                if(data.tickets[0].quantity === 0 && data.tickets[0].quantity === 0) {
+                console.log(data.tickets)
+                if(data.tickets[0].quantity === 0 && data.tickets[1].quantity === 0 && ch === false) {
                     document.getElementById("expireModal").style.display = "flex";
                 } else {
                     data.tickets.forEach(ticket => {
@@ -70,7 +71,7 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
         
-        refreshTable(accessCode);
+        refreshTable(accessCode, false);
         
     });
     document.getElementById("availableSubmit").addEventListener("click", () => {
@@ -114,7 +115,7 @@ document.addEventListener("DOMContentLoaded", () => {
                             <li>General Female Entry: ${generalFemaleValue}</li>
                         </ul>
                     `;
-                    refreshTable(accessCode);
+                    refreshTable(accessCode, true);
                     document.getElementById("successModal").style.display = "flex"; 
                 } else {
                     document.getElementById("modal").style.display = "flex";
