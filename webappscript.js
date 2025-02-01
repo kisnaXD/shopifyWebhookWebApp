@@ -20,14 +20,15 @@ function refreshTable(accessCode, ch) {
         .then(response => response.json())
         .then(data => {
             if (data.status === "success") {
-                const accessCodePara = document.querySelector(".accessCodePara");
-                accessCodePara.innerText = `Welcome : ${data.name} \nAccess Code : ${accessCode}`
                 accessCodePara.setAttribute("data-access-code", accessCode);
                 accessCodePara.setAttribute("data-name", data.name);
                 console.log(data.tickets)
                 if(data.tickets[0].quantity === 0 && data.tickets[1].quantity === 0 && ch === false) {
                     document.getElementById("expireModal").style.display = "flex";
                 } else {
+
+                    const accessCodePara = document.querySelector(".accessCodePara");
+                    accessCodePara.innerText = `Welcome : ${data.name} \nAccess Code : ${accessCode}`
                     data.tickets.forEach(ticket => {
                         const ticketName = ticket.name.toLowerCase().replace(/\s+/g, '-'); 
                         const quantity = ticket.quantity;
