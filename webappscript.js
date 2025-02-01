@@ -26,7 +26,7 @@
 
                     const accessCodePara = document.querySelector(".accessCodePara");
                     console.log(data.tickets)
-                    if(data.tickets[0].quantity === 0 && data.tickets[1].quantity === 0 && ch === false) {
+                    if(((data.tickets.length === 1 && data.tickets.quantity === 0) || (data.tickets.length>1 && data.tickets[0].quantity === 0 && data.tickets[1].quantity === 0)) && ch === false) {
                         document.getElementById("expireModal").style.display = "flex";
                     } else {
                         accessCodePara.innerText = `Welcome : ${data.name} \nAccess Code : ${accessCode}`
